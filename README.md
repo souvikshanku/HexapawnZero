@@ -7,7 +7,6 @@
   * Game Logic
     * Valid Moves  ✅
     * Is Game Over?  ✅
-
-* Play with dummy eval
-* Minimax?
+* MCTS
+  * Play with dummy eval?
 * Build Policy-Value Network
