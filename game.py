@@ -21,7 +21,7 @@ def draw_board(state: np.ndarray) -> None:
     for i, move in enumerate(state):
         if move == 1:
             board[pos[i]] = "W"
-        elif move == 2:
+        elif move == -1:
             board[pos[i]] = "B"
 
     print("".join(board))
@@ -50,15 +50,15 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
                 if y + 1 < 3 and state[x - 1, y + 1] != 1:
                     valid_moves.append([pos, [x - 1, y + 1]])
         else:
-            if x == 2:
+            if x == -1:
                 continue
             else:
                 if state[x + 1, y] == 0:  # If no white piece down
                     valid_moves.append([pos, [x + 1, y]])
                 # Capture
-                if y - 1 >= 0 and state[x + 1, y - 1] != 2:
+                if y - 1 >= 0 and state[x + 1, y - 1] != -1:
                     valid_moves.append([pos, [x + 1, y - 1]])
-                if y + 1 < 3 and state[x + 1, y + 1] != 2:
+                if y + 1 < 3 and state[x + 1, y + 1] != -1:
                     valid_moves.append([pos, [x + 1, y + 1]])
 
     return valid_moves
@@ -67,13 +67,13 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
 def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
     if 1 in state[0]:
         return True, 1
-    elif 2 in state[2]:
-        return True, 2
+    elif -1 in state[2]:
+        return True, -1
 
     valid_moves = get_valid_moves(state, player)
     if not valid_moves:
         if player == 1:
-            return True, 2
+            return True, -1
         else:
             return True, 1
 
@@ -90,7 +90,7 @@ def make_move(
 
 if __name__ == "__main__":
     state = np.array([
-        [2, 2, 2],
+        [-1, -1, -1],
         [0, 1, 0],
         [1, 0, 1]
     ])
