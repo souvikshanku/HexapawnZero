@@ -3,13 +3,13 @@ import numpy as np
 
 BOARD = list("""
     +-----+-----+-----+
- 3  |     |     |     |
-    +-----+-----+-----+
- 2  |     |     |     |
+ 0  |     |     |     |
     +-----+-----+-----+
  1  |     |     |     |
     +-----+-----+-----+
-       a     b     c
+ 2  |     |     |     |
+    +-----+-----+-----+
+       0     1     2
 """)
 
 
@@ -35,6 +35,7 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
                 pieces_pos.append([row, col])
 
     valid_moves = []  # with element of this form: (from, to)
+
     for pos in pieces_pos:
         x, y = pos[0], pos[1]
 
@@ -45,9 +46,9 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
                 if state[x - 1, y] == 0:  # If no black piece up
                     valid_moves.append([pos, [x - 1, y]])
                 # Capture
-                if y - 1 >= 0 and state[x - 1, y - 1] != 1:
+                if y - 1 >= 0 and state[x - 1, y - 1] == -1:
                     valid_moves.append([pos, [x - 1, y - 1]])
-                if y + 1 < 3 and state[x - 1, y + 1] != 1:
+                if y + 1 < 3 and state[x - 1, y + 1] == -1:
                     valid_moves.append([pos, [x - 1, y + 1]])
         else:
             if x == -1:
@@ -56,9 +57,9 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
                 if state[x + 1, y] == 0:  # If no white piece down
                     valid_moves.append([pos, [x + 1, y]])
                 # Capture
-                if y - 1 >= 0 and state[x + 1, y - 1] != -1:
+                if y - 1 >= 0 and state[x + 1, y - 1] == 1:
                     valid_moves.append([pos, [x + 1, y - 1]])
-                if y + 1 < 3 and state[x + 1, y + 1] != -1:
+                if y + 1 < 3 and state[x + 1, y + 1] == 1:
                     valid_moves.append([pos, [x + 1, y + 1]])
 
     return valid_moves
