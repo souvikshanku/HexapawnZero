@@ -8,5 +8,6 @@
     * Valid Moves  ✅
     * Is Game Over?  ✅
 * MCTS
-  * Play with dummy eval?
+  * Basic Structure  ✅
+  * Search
 * Build Policy-Value Network

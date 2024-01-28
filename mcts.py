@@ -6,12 +6,14 @@ from game import is_game_over, get_valid_moves, make_move, draw_board
 class Node:
     def __init__(self, state) -> None:
         self.state = np.array(state).reshape(3, 3)
-        self.value = None
+        self.num_games = 0
+        self.num_wins = 0
+        self.value = 0
         self.parent = None
         self.children = []
 
     def __repr__(self):
-        return f"Node({self.state}, value = {self.value})"
+        return f"Node({self.state.flatten()}, value = {self.value})"
 
     def selection(self, path):
         path.append(self)
@@ -40,7 +42,7 @@ class Node:
         num_games = 0
         current_player = player
 
-        while num_games < 2:
+        while num_games < 5:
             state = self.state.copy()
 
             while not is_game_over(state, player)[0]:
@@ -62,10 +64,15 @@ class Node:
             num_games += 1
 
         print(num_wins, "/", num_games)
-        return num_wins / num_games
+        return num_wins, num_games
 
-    def backpropagation(self):
-        pass
+    def backpropagation(self, path, num_wins, num_games):
+        for node in path[::-1]:
+            node.num_games += num_games
+            node.num_wins += num_wins
+            node.value = node.num_wins / node.num_games
+
+        return
 
 
 if __name__ == "__main__":
@@ -75,11 +82,22 @@ if __name__ == "__main__":
         [1, 1, 1]
     ])
     root = Node(state.flatten())
-    root.simulation(1)
-    # child1 = Node([1] + [0] * 8)
-    # child1.value = 1
-    # child2 = Node([0] * 8 + [1])
-    # child2.value = 2
-    # root.children = [child1, child2]
-    # path = []
-    # print(root.selection(path))
+    # root.simulation(1)
+    child1 = Node([-1] + [0] * 8)
+    child1.value = 1
+    child2 = Node([0] * 8 + [-1])
+    child2.value = 2
+    root.children = [child1, child2]
+    child21 = Node([-1] * 9)
+    child2.children = [child21]
+    path = []
+    path = root.selection(path)[1]
+    # print(path)
+    root.backpropagation(path, 1, 2)
+
+    def dfs(node):
+        for c in node.children:
+            print(c)
+            dfs(c)
+
+    dfs(root)
