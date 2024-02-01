@@ -9,5 +9,8 @@
     * Is Game Over?  ✅
 * MCTS
   * Basic Structure  ✅
+  * UCT
   * Search
 * Build Policy-Value Network
+  * Input - Output  ✅
+  * Model Arch.
