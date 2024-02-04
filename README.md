@@ -13,4 +13,5 @@
   * Search
 * Build Policy-Value Network
   * Input - Output  ✅
-  * Model Arch.
+  * Model Arch.  ✅
+* Self-play
