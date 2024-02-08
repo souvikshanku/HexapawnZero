@@ -11,7 +11,7 @@
 * MCTS
   * Basic Structure  ✅
   * Fix UCT bs
-    * Understand Q, N, P
+    * Understand Q, N, P  ✅
     * Change `node.py` accordingly
     * Implement Search
 

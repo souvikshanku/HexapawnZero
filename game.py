@@ -1,5 +1,7 @@
 import numpy as np
 
+from game import MOVE_INDEX
+
 
 BOARD = list("""
     +-----+-----+-----+
@@ -82,11 +84,19 @@ def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
 
 
 def make_move(
-        state: np.ndarray, _from: list, _to: list, player: int
+    state: np.ndarray, _from: list, _to: list, player: int
 ) -> np.ndarray:
     state[_from[0], _from[1]] = 0
     state[_to[0], _to[1]] = player
     return state
+
+
+def get_move_idx(pre, post, player):
+    for i in MOVE_INDEX:
+        move = MOVE_INDEX[i]
+        new_state = make_move(pre, move[0], move[1], player)
+        if new_state == post:
+            return i
 
 
 if __name__ == "__main__":

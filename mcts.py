@@ -1,41 +1,31 @@
-from game import is_game_over
-from model import HexapawnNet
-from node import Node
+import numpy as np
+
+from game import is_game_over, get_move_idx
 from utils import get_input_from_state
 
 
-class MCTS:
-    def __init__(self, state: Node, hnet: HexapawnNet) -> None:
-        self.state = state
-        self.hnet = hnet
-        self.examples = {}  # (state, player): [policy, value]
+def mcts(state, player, hnet):
+    game_over, reward = is_game_over(state, player)
+    if game_over:
+        return - reward
 
-    def search(self, player):
-        if is_game_over(self.state)[0]:
-            return - is_game_over(self.state)[1]
+    if state.num_visits == 0:
+        state.num_visits += 1
+        policy, value = hnet.predict(get_input_from_state(state, player))
+        return - value
 
-        self.state, path = self.state.selection()
-        self.state.expansion(path[-1], player)
+    max_u, best_child = -float("inf"), -1
+    state.expansion(player)
 
-        inp = get_input_from_state(path[-1].state)
-        pi, v = self.hnet.forward(inp)
-        self.state.backpropagation(path, v)
+    for c in state.children:
+        idx = get_move_idx(state, c, policy, player)
+        u_value = c.q_value + 0.1 * policy[idx] * np.sqrt(state.num_visits) / (1 + c.num_visits)
 
-        self.examples[inp] = [pi, None]
-        return
+        if u_value > max_u:
+            max_u = u_value
+            best_child = c
 
+    v = mcts(best_child, - player, hnet)
 
-"""
-state = Start_Position
-hnet = init_nn()
-training_examples = []
-
-mcts = MCTS(state, hnet)
-
-for _ in range(num_sims):
-    mcts.search()
-
-    for example in mcts.examples:
-        training_examples.append(example)
-
-"""
+    state.num_visits += 1
+    state.q_value = (state.num_visits * state.q_value + v) / (state.num_visits + 1)
