@@ -94,8 +94,8 @@ def make_move(
 def get_move_idx(pre, post, player):
     for i in MOVE_INDEX:
         move = MOVE_INDEX[i]
-        new_state = make_move(pre, move[0], move[1], player)
-        if new_state == post:
+        new_state = make_move(pre.state.copy(), move[0], move[1], player)
+        if (new_state == post.state).all():
             return i
 
 

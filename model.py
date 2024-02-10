@@ -57,6 +57,11 @@ class HexapawnNet(nn.Module):
             total_loss.backward()
             optimizer.step()
 
+    def predict(self, state):
+        state = torch.FloatTensor(np.array(state))
+        policy, value = self.forward(state)
+        return policy[0], value[0]
+
     def loss_pi(self, targets, outputs):
         return - torch.sum(targets * outputs) / targets.size()[0]
 
@@ -71,3 +76,4 @@ if __name__ == "__main__":
 
     hnet = HexapawnNet()
     hnet.train(examples)
+    print(hnet.predict(examples[0][0]))
