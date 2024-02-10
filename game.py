@@ -1,6 +1,6 @@
 import numpy as np
 
-from game import MOVE_INDEX
+from utils import MOVE_INDEX
 
 
 BOARD = list("""

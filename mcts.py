@@ -1,7 +1,30 @@
 import numpy as np
 
-from game import is_game_over, get_move_idx
+from game import is_game_over, get_move_idx, get_valid_moves, make_move
 from utils import get_input_from_state
+
+
+class Node:
+    def __init__(self, state) -> None:
+        self.state = np.array(state).reshape(3, 3)
+        self.num_visits = 0
+        self.num_wins = 0
+        self.q_value = 0
+        self.parent = None
+        self.children = []
+
+    def __repr__(self):
+        return f"Node({self.state.flatten()}, value = {self.value})"
+
+    def __eq__(self, other):
+        return (self.state == other.state).all()
+
+    def expansion(self, player):
+        moves = get_valid_moves(self.state)
+        for m in moves:
+            child = Node(make_move(self.state, m[0], m[1], player))
+            child.parent = self
+        self.children.append(child)
 
 
 def mcts(state, player, hnet):
