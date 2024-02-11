@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 from game import is_game_over, get_move_idx, get_valid_moves, make_move
 from utils import get_input_from_state
@@ -15,7 +16,7 @@ class Node:
         self.children = []
 
     def __repr__(self):
-        return f"Node({self.state.flatten()}, value = {float(self.q_value)})"
+        return f"Node({self.state.flatten()}, visits = {float(self.num_visits)})"
 
     def expansion(self, player):
         moves = get_valid_moves(self.state, player)
@@ -24,6 +25,15 @@ class Node:
             child = Node(child_state)
             child.parent = self
             self.children.append(child)
+
+    def get_mcts_policy(self, player):
+        policy = torch.zeros(28)
+        total_visits = sum([child.num_visits for child in self.children])
+        for child in self.children:
+            idx = get_move_idx(self, child, player)
+            policy[idx] = child.num_visits / total_visits
+
+        return policy
 
 
 def mcts(state, player, hnet):
@@ -34,7 +44,7 @@ def mcts(state, player, hnet):
     if state.num_visits == 0:
         state.num_visits += 1
         policy, value = hnet.predict(get_input_from_state(state.state, player))
-        state.policy = policy
+        state.policy = torch.exp(policy)  # because model retuns log softmax
         return - value
 
     max_u, best_child = -float("inf"), None
@@ -63,14 +73,16 @@ def mcts(state, player, hnet):
 if __name__ == "__main__":
     state = np.array([
         [-1, -1, -1],
-        [0,  0,  0],
-        [1,  1,  1]
+        [0,  0,  1],
+        [1,  1,  0]
     ])
 
     state = Node(state)
 
     hnet = HexapawnNet()
-    for _ in range(5):
-        mcts(state, player=1, hnet=hnet)
-        print(state.q_value, state.num_visits, state.children)
+    for _ in range(10):
+        mcts(state, player=-1, hnet=hnet)
+        print(state, state.num_visits, state.children)
         print("----------------------")
+
+    print(state.get_mcts_policy(-1))

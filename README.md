@@ -13,7 +13,7 @@
   * Fix UCT bs
     * Understand Q, N, P  ✅
     * Change `node.py` accordingly  ✅
-    * Implement Search
+    * Implement Search  ✅
 
 * Build Policy-Value Network
   * Input - Output  ✅
