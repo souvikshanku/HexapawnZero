@@ -36,7 +36,7 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
             if state[row, col] == player:
                 pieces_pos.append([row, col])
 
-    valid_moves = []  # with element of this form: (from, to)
+    valid_moves = []  # with element of this form: [from, to]
 
     for pos in pieces_pos:
         x, y = pos[0], pos[1]
