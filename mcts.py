@@ -9,6 +9,7 @@ from model import HexapawnNet
 class Node:
     def __init__(self, state) -> None:
         self.state = np.array(state).reshape(3, 3)
+        self.player = None
         self.num_visits = 0
         self.q_value = 0
         self.policy = [0] * 28
@@ -37,6 +38,7 @@ class Node:
 
 
 def mcts(state, player, hnet):
+    state.player = player
     game_over, reward = is_game_over(state.state, player)
     if game_over:
         return - reward
@@ -71,6 +73,8 @@ def mcts(state, player, hnet):
 
 
 if __name__ == "__main__":
+    from game import draw_board
+
     state = np.array([
         [-1, -1, -1],
         [0,  0,  1],
@@ -78,11 +82,19 @@ if __name__ == "__main__":
     ])
 
     state = Node(state)
+    print(state, state.num_visits, state.player)
+    draw_board(state.state)
+    print("----------------------")
 
     hnet = HexapawnNet()
     for _ in range(10):
         mcts(state, player=-1, hnet=hnet)
-        print(state, state.num_visits, state.children)
-        print("----------------------")
+
+    print(state, state.num_visits, state.player)
+    print("----------------------")
+
+    for c in state.children:
+        print(c.children, c.player)
+        draw_board(c.state)
 
     print(state.get_mcts_policy(-1))
