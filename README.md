@@ -20,6 +20,7 @@
   * Model Arch.  ✅
 
 * Self-play
-  * Understand example gen by mcts
-  * Implement episodes
+  * Understand example gen by mcts  ✅
+  * Implement episodes  ✅
   * Pit nns
+  * policy iteration
