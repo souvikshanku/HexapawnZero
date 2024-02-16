@@ -22,5 +22,5 @@
 * Self-play
   * Understand example gen by mcts  ✅
   * Implement episodes  ✅
-  * Pit nns
+  * Pit nns  ✅
   * policy iteration
