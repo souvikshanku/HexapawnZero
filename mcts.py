@@ -58,7 +58,7 @@ def mcts(state, player, hnet):
         idx = get_move_idx(state, c, player)
         u_value = (
             c.q_value
-            + 0.1 * state.policy[idx] * np.sqrt(state.num_visits) / (1 + c.num_visits)
+            + 1 * state.policy[idx] * np.sqrt(state.num_visits) / (1 + c.num_visits)
         )
 
         if u_value > max_u:
