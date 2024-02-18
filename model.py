@@ -10,7 +10,7 @@ class HexapawnNet(nn.Module):
     def __init__(self) -> None:
         self.inp_dim = 21
         self.action_size = 28
-        self.epochs = 150
+        self.epochs = 256
 
         super(HexapawnNet, self).__init__()
         self.fc1 = nn.Linear(in_features=self.inp_dim, out_features=128)

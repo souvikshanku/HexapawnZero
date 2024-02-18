@@ -27,6 +27,7 @@ def draw_board(state: np.ndarray) -> None:
             board[pos[i]] = "B"
 
     print("".join(board))
+    return board
 
 
 def get_valid_moves(state: np.ndarray, player: int) -> list:

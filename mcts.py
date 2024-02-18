@@ -41,6 +41,7 @@ def mcts(state, player, hnet):
     state.player = player
     game_over, reward = is_game_over(state.state, player)
     if game_over:
+        state.num_visits += 1
         return - reward
 
     if state.num_visits == 0:
