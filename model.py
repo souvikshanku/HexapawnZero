@@ -63,7 +63,9 @@ class HexapawnNet(nn.Module):
 
     def predict(self, state):
         state = torch.FloatTensor(np.array(state))
-        policy, value = self.forward(state)
+        with torch.no_grad():
+            policy, value = self.forward(state)
+
         return policy[0], value[0]
 
     def loss_pi(self, targets, outputs):

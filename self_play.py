@@ -2,16 +2,15 @@ import copy
 
 import numpy as np
 
-from game import get_valid_moves, is_game_over, make_move
+from game import is_game_over, make_move  # , get_valid_moves, draw_board
 from mcts import mcts, Node
 from model import HexapawnNet
 from utils import MOVE_INDEX, get_input_from_state
 
 
-def generate_examples(hnet: HexapawnNet):
+def generate_examples(hnet: HexapawnNet, num_episodes=150):
     training_examples = []
     num_sims = 10
-    num_episodes = 100  # 50
 
     for _ in range(num_episodes):
         state = Node(np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]))
@@ -24,11 +23,17 @@ def generate_examples(hnet: HexapawnNet):
                 mcts(state, player=player, hnet=hnet)
 
             # draw_board(state.state)
-            examples.append([
-                state,
-                state.get_mcts_policy(state.player),
-                None,
-            ])
+            try:
+                examples.append([
+                    state,
+                    state.get_mcts_policy(state.player),
+                    None,
+                ])
+            except Exception:
+                # draw_board(state.state)
+                # print(state.player)
+                # print(len(training_examples), len(examples))
+                pass
 
             action = _get_action_from_policy(state)
             next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
@@ -43,15 +48,19 @@ def generate_examples(hnet: HexapawnNet):
 
 
 def _get_action_from_policy(state: Node):
-    policy = state.policy.detach().numpy().copy()
-    valid_moves = get_valid_moves(state.state, state.player)
+    # policy = state.policy.detach().numpy().copy()
 
-    # Mask illegal move
-    for idx in MOVE_INDEX:
-        if MOVE_INDEX[idx] not in valid_moves:
-            policy[idx] = 0
+    # valid_moves = get_valid_moves(state.state, state.player)
 
-    action_idx = np.random.choice(range(len(state.policy)), p=policy/sum(policy))
+    # # Mask illegal move
+    # for idx in MOVE_INDEX:
+    #     if MOVE_INDEX[idx] not in valid_moves:
+    #         policy[idx] = 0
+
+    # action_idx = np.random.choice(range(len(state.policy)), p=policy/sum(policy))
+
+    policy = state.get_mcts_policy(state.player).detach().numpy().copy()
+    action_idx = np.random.choice(range(len(state.policy)), p=policy)
 
     return MOVE_INDEX[action_idx]
 
@@ -70,9 +79,11 @@ def _assign_rewards(examples, winner):
 
 
 def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
-    num_sims = 5
-    num_episodes = 10
+    num_sims = 10
+    num_episodes = 20
     hnet2_wins = 0
+    win_as_black = 0
+    win_as_white = 0
 
     def player_hnet(player, episode_count):
         # hnet2 plays as black for first 5 episodes
@@ -88,9 +99,6 @@ def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
             return hnet1
 
     for i in range(num_episodes):
-        win_as_black = 0
-        win_as_white = 0
-
         state = Node(np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]))
         player = -1  # when multipllied by -1, it becomes 1 for first move
 
@@ -104,8 +112,6 @@ def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
             state = Node(next_state)
 
             if is_game_over(state.state, player * -1)[0]:
-                # winner = is_game_over(state.state, player * -1)[1]
-
                 if i < num_episodes / 2 and player == -1:
                     win_as_black += 1
                     hnet2_wins += 1
@@ -124,11 +130,11 @@ def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
 
 def self_play(num_iters):
     hnet = HexapawnNet()
+    examples = []
 
     for _ in range(num_iters):
-        examples = generate_examples(hnet)
-        print(examples[0][-1])
-        # print(examples[-1])
+        examples = generate_examples(hnet, 20)
+        # examples += generate_examples(hnet, 20)
 
         new_hnet = copy.deepcopy(hnet)
         new_hnet.train(examples)
@@ -136,14 +142,15 @@ def self_play(num_iters):
         frac_win = pit_nns(hnet, new_hnet)
         print("frac_win: ", frac_win, "\n------------------")
 
-        if frac_win > 0.5:
+        if frac_win >= 0.5:
             hnet = new_hnet
+            examples = []
 
     return hnet
 
 
 if __name__ == "__main__":
-    hnet = HexapawnNet()
+    # hnet = HexapawnNet()
     # examples = generate_examples(hnet)
 
     # print(examples[0])
@@ -152,9 +159,10 @@ if __name__ == "__main__":
     # hnet1 = HexapawnNet()
     # hnet2 = HexapawnNet()
 
-    # for i in range(10):
-    #     print(pit_nns(hnet1, hnet2))
+    # # for i in range(10):
+    # print(pit_nns(hnet1, hnet2))
 
-    trained_hnet = self_play(5)
-    print("Final Score:", pit_nns(hnet, trained_hnet))
-    print("Final Score b/w randoms:", pit_nns(hnet, HexapawnNet()))
+    trained_hnet = self_play(15)
+    hnet = HexapawnNet()
+    print("--------------------------\n\n""Final Score:", pit_nns(hnet, trained_hnet))
+    # print("Final Score b/w randoms:", pit_nns(HexapawnNet(), HexapawnNet()))
