@@ -34,6 +34,12 @@ class Node:
             idx = get_move_idx(self, child, player)
             policy[idx] = child.num_visits / total_visits
 
+        # if sum(policy) != 1:
+        #     draw_board(self.state)
+        #     print(self.policy)
+        #     print(self.player, self.state)
+        #     print(is_game_over(self.state, self.player * -1))
+
         return policy
 
 
@@ -50,8 +56,10 @@ def mask_illegal_moves(state, policy):
 
 def mcts(state, player, hnet):
     state.player = player
+
     game_over, reward = is_game_over(state.state, player)
     if game_over:
+        # state.player = - player
         state.q_value = (state.num_visits * state.q_value + (- reward)) / (state.num_visits + 1)
         state.num_visits += 1
         return - reward

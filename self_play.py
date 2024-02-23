@@ -23,24 +23,25 @@ def generate_examples(hnet: HexapawnNet, num_episodes=150):
                 mcts(state, player=player, hnet=hnet)
 
             # draw_board(state.state)
-            try:
-                examples.append([
-                    state,
-                    state.get_mcts_policy(state.player),
-                    None,
-                ])
-            except Exception:
+            examples.append([
+                state,
+                state.get_mcts_policy(state.player),
+                None,
+            ])
+
+            if not is_game_over(state.state, player * -1)[0]:
+                action = _get_action_from_policy(state)
+                next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
+                state = Node(next_state)
+
+            # if is_game_over(state.state, player * -1)[0]:
+            else:
+                # from game import draw_board
                 # draw_board(state.state)
-                # print(state.player)
-                # print(len(training_examples), len(examples))
-                pass
+                # print(state.get_mcts_policy(state.player))
+                # print(examples[-1][0].get_mcts_policy(examples[-1][0].player))
 
-            action = _get_action_from_policy(state)
-            next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
-            state = Node(next_state)
-
-            if is_game_over(state.state, player * -1)[0]:
-                examples = _assign_rewards(examples, winner=player)
+                examples = _assign_rewards(examples[:-1], winner=player)
                 training_examples += examples
                 break
 
@@ -48,17 +49,6 @@ def generate_examples(hnet: HexapawnNet, num_episodes=150):
 
 
 def _get_action_from_policy(state: Node):
-    # policy = state.policy.detach().numpy().copy()
-
-    # valid_moves = get_valid_moves(state.state, state.player)
-
-    # # Mask illegal move
-    # for idx in MOVE_INDEX:
-    #     if MOVE_INDEX[idx] not in valid_moves:
-    #         policy[idx] = 0
-
-    # action_idx = np.random.choice(range(len(state.policy)), p=policy/sum(policy))
-
     policy = state.get_mcts_policy(state.player).detach().numpy().copy()
     action_idx = np.random.choice(range(len(state.policy)), p=policy)
 
@@ -133,8 +123,8 @@ def self_play(num_iters):
     examples = []
 
     for _ in range(num_iters):
-        examples = generate_examples(hnet, 20)
-        # examples += generate_examples(hnet, 20)
+        # examples = generate_examples(hnet, 20)
+        examples += generate_examples(hnet, 16)
 
         new_hnet = copy.deepcopy(hnet)
         new_hnet.train(examples)
@@ -142,7 +132,7 @@ def self_play(num_iters):
         frac_win = pit_nns(hnet, new_hnet)
         print("frac_win: ", frac_win, "\n------------------")
 
-        if frac_win >= 0.5:
+        if frac_win > 0.5:
             hnet = new_hnet
             examples = []
 
@@ -162,7 +152,7 @@ if __name__ == "__main__":
     # # for i in range(10):
     # print(pit_nns(hnet1, hnet2))
 
-    trained_hnet = self_play(15)
+    trained_hnet = self_play(10)
     hnet = HexapawnNet()
     print("--------------------------\n\n""Final Score:", pit_nns(hnet, trained_hnet))
     # print("Final Score b/w randoms:", pit_nns(HexapawnNet(), HexapawnNet()))

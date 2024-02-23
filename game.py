@@ -74,6 +74,11 @@ def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
     elif -1 in state[2]:
         return True, -1
 
+    if 1 not in state:
+        return True, -1
+    elif -1 not in state:
+        return True, 1
+
     valid_moves = get_valid_moves(state, player)
     if not valid_moves:
         if player == 1:
@@ -87,9 +92,10 @@ def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
 def make_move(
     state: np.ndarray, _from: list, _to: list, player: int
 ) -> np.ndarray:
-    state[_from[0], _from[1]] = 0
-    state[_to[0], _to[1]] = player
-    return state
+    state_copy = state.copy()
+    state_copy[_from[0], _from[1]] = 0
+    state_copy[_to[0], _to[1]] = player
+    return state_copy
 
 
 def get_move_idx(pre, post, player):
