@@ -2,7 +2,7 @@ import copy
 
 import numpy as np
 
-from game import is_game_over, make_move  # , get_valid_moves, draw_board
+from game import is_game_over, make_move
 from mcts import mcts, Node
 from model import HexapawnNet
 from utils import MOVE_INDEX, get_input_from_state
@@ -22,7 +22,6 @@ def generate_examples(hnet: HexapawnNet, num_episodes=150):
             for _ in range(num_sims):
                 mcts(state, player=player, hnet=hnet)
 
-            # draw_board(state.state)
             examples.append([
                 state,
                 state.get_mcts_policy(state.player),
@@ -34,13 +33,7 @@ def generate_examples(hnet: HexapawnNet, num_episodes=150):
                 next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
                 state = Node(next_state)
 
-            # if is_game_over(state.state, player * -1)[0]:
             else:
-                # from game import draw_board
-                # draw_board(state.state)
-                # print(state.get_mcts_policy(state.player))
-                # print(examples[-1][0].get_mcts_policy(examples[-1][0].player))
-
                 examples = _assign_rewards(examples[:-1], winner=player)
                 training_examples += examples
                 break
@@ -55,7 +48,7 @@ def _get_action_from_policy(state: Node):
     return MOVE_INDEX[action_idx]
 
 
-def _assign_rewards(examples, winner):
+def _assign_rewards(examples: list, winner: int):
     for i in range(len(examples)):
         if examples[i][0].player == winner:
             examples[i][2] = 1
@@ -68,21 +61,20 @@ def _assign_rewards(examples, winner):
     return examples
 
 
-def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
+def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet, num_episodes=20):
     num_sims = 10
-    num_episodes = 20
     hnet2_wins = 0
     win_as_black = 0
     win_as_white = 0
 
     def player_hnet(player, episode_count):
-        # hnet2 plays as black for first 5 episodes
+        # hnet2 plays as black for first 10 episodes
         if episode_count < num_episodes / 2:
             if player == 1:
                 return hnet1
             else:
                 return hnet2
-        # hnet2 plays as white for last 5 episodes
+        # hnet2 plays as white for last 10 episodes
         elif player == 1:
             return hnet2
         else:
@@ -118,21 +110,20 @@ def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet):
     return hnet2_wins / num_episodes
 
 
-def self_play(num_iters):
+def self_play(num_iters: int):
     hnet = HexapawnNet()
     examples = []
 
     for _ in range(num_iters):
-        # examples = generate_examples(hnet, 20)
-        examples += generate_examples(hnet, 16)
+        examples += generate_examples(hnet, 10)
 
         new_hnet = copy.deepcopy(hnet)
         new_hnet.train(examples)
 
         frac_win = pit_nns(hnet, new_hnet)
-        print("frac_win: ", frac_win, "\n------------------")
+        print("frac_win: ", frac_win,)
 
-        if frac_win > 0.5:
+        if frac_win >= 0.5:
             hnet = new_hnet
             examples = []
 
@@ -140,19 +131,9 @@ def self_play(num_iters):
 
 
 if __name__ == "__main__":
-    # hnet = HexapawnNet()
-    # examples = generate_examples(hnet)
+    import torch
 
-    # print(examples[0])
-    # print(len(examples))
-
-    # hnet1 = HexapawnNet()
-    # hnet2 = HexapawnNet()
-
-    # # for i in range(10):
-    # print(pit_nns(hnet1, hnet2))
-
-    trained_hnet = self_play(10)
+    trained_hnet = self_play(20)
+    torch.save(trained_hnet, "./model.bin")
     hnet = HexapawnNet()
-    print("--------------------------\n\n""Final Score:", pit_nns(hnet, trained_hnet))
-    # print("Final Score b/w randoms:", pit_nns(HexapawnNet(), HexapawnNet()))
+    print("--------------------------\n""Final Score with random:", pit_nns(hnet, trained_hnet, 50))

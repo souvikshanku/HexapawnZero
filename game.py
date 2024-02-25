@@ -1,7 +1,5 @@
 import numpy as np
 
-from utils import MOVE_INDEX
-
 
 BOARD = list("""
     +-----+-----+-----+
@@ -96,14 +94,6 @@ def make_move(
     state_copy[_from[0], _from[1]] = 0
     state_copy[_to[0], _to[1]] = player
     return state_copy
-
-
-def get_move_idx(pre, post, player):
-    for i in MOVE_INDEX:
-        move = MOVE_INDEX[i]
-        new_state = make_move(pre.state.copy(), move[0], move[1], player)
-        if (new_state == post.state).all():
-            return i
 
 
 if __name__ == "__main__":
