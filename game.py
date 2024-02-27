@@ -1,5 +1,7 @@
 import numpy as np
 
+# from utils import MOVE_INDEX
+
 
 BOARD = list("""
     +-----+-----+-----+
@@ -24,8 +26,7 @@ def draw_board(state: np.ndarray) -> None:
         elif move == -1:
             board[pos[i]] = "B"
 
-    print("".join(board))
-    return board
+    return "".join(board)
 
 
 def get_valid_moves(state: np.ndarray, player: int) -> list:
@@ -68,21 +69,31 @@ def get_valid_moves(state: np.ndarray, player: int) -> list:
 
 def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
     if 1 in state[0]:
-        return True, 1
+        if player == 1:
+            return True, 1
+        else:
+            return True, -1
+
     elif -1 in state[2]:
-        return True, -1
+        if player == -1:
+            return True, 1
+        else:
+            return True, -1
 
     if 1 not in state:
-        return True, -1
-    elif -1 not in state:
-        return True, 1
-
-    valid_moves = get_valid_moves(state, player)
-    if not valid_moves:
         if player == 1:
             return True, -1
         else:
             return True, 1
+    elif -1 not in state:
+        if player == 1:
+            return True, 1
+        else:
+            return True, -1
+
+    valid_moves = get_valid_moves(state, player)
+    if not valid_moves:
+        return True, -1
 
     return False, None
 
