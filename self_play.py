@@ -3,35 +3,38 @@ import copy
 import numpy as np
 
 from game import is_game_over, make_move
-from mcts import mcts, Node
+from mcts import MCTS
 from model import HexapawnNet
 from utils import MOVE_INDEX, get_input_from_state
 
 
-def generate_examples(hnet: HexapawnNet, num_episodes=150):
+def generate_examples(hnet: HexapawnNet, num_episodes=1):
     training_examples = []
     num_sims = 10
 
     for _ in range(num_episodes):
-        state = Node(np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]))
+        state = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
         player = -1  # when multipllied by -1, it becomes 1 for first move
         examples = []
 
         while True:
             player = player * -1
-            for _ in range(num_sims):
-                mcts(state, player=player, hnet=hnet)
+            mcts = MCTS(hnet)
 
+            for _ in range(num_sims):
+                mcts.search(state, player=player)
+
+            s = get_input_from_state(state, player)
+            improved_policy = _get_mcts_policy(s, mcts.Nsa)
             examples.append([
-                state,
-                state.get_mcts_policy(state.player),
+                s,
+                improved_policy,
                 None,
             ])
 
-            if not is_game_over(state.state, player * -1)[0]:
-                action = _get_action_from_policy(state)
-                next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
-                state = Node(next_state)
+            if not is_game_over(state, player * -1)[0]:
+                action = _get_action_from_policy(improved_policy)
+                state = make_move(state, _from=action[0], _to=action[1], player=player)
 
             else:
                 examples = _assign_rewards(examples[:-1], winner=player)
@@ -41,22 +44,31 @@ def generate_examples(hnet: HexapawnNet, num_episodes=150):
     return training_examples
 
 
-def _get_action_from_policy(state: Node):
-    policy = state.get_mcts_policy(state.player).detach().numpy().copy()
-    action_idx = np.random.choice(range(len(state.policy)), p=policy)
+def _get_mcts_policy(state, Nsa):
+    policy = np.zeros(28)
+    for a in Nsa:
+        s = eval(eval(a)[0].replace(" ", ","))
 
+        if (state == s).all():
+            policy[eval(a)[1]] = Nsa[a]
+
+    if sum(policy) != 0:
+        return policy / sum(policy)
+
+
+def _get_action_from_policy(policy):
+    action_idx = np.random.choice(range(len(policy)), p=policy)
     return MOVE_INDEX[action_idx]
 
 
 def _assign_rewards(examples: list, winner: int):
-    for i in range(len(examples)):
-        if examples[i][0].player == winner:
-            examples[i][2] = 1
-        else:
-            examples[i][2] = -1
+    indc = 0 if winner == -1 else 1
 
-        board_state = get_input_from_state(examples[i][0].state, examples[i][0].player)
-        examples[i][0] = board_state
+    for ex in examples:
+        if ex[0][-1] == indc:
+            ex[2] = 1
+        else:
+            ex[2] = - 1
 
     return examples
 
@@ -81,19 +93,21 @@ def pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet, num_episodes=20):
             return hnet1
 
     for i in range(num_episodes):
-        state = Node(np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]))
+        state = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
         player = -1  # when multipllied by -1, it becomes 1 for first move
 
         while True:
             player = player * -1
+            mcts = MCTS(player_hnet(player, i))
+
             for _ in range(num_sims):
-                mcts(state, player=player, hnet=player_hnet(player, i))
+                mcts.search(state, player=player)
 
-            action = _get_action_from_policy(state)
-            next_state = make_move(state.state, _from=action[0], _to=action[1], player=player)
-            state = Node(next_state)
+            s = str(get_input_from_state(state, player))
+            action = _get_action_from_policy(mcts.Ps[s])
+            state = make_move(state, _from=action[0], _to=action[1], player=player)
 
-            if is_game_over(state.state, player * -1)[0]:
+            if is_game_over(state, player * -1)[0]:
                 if i < num_episodes / 2 and player == -1:
                     win_as_black += 1
                     hnet2_wins += 1
@@ -131,9 +145,9 @@ def self_play(num_iters: int):
 
 
 if __name__ == "__main__":
-    import torch
+    # import torch
 
     trained_hnet = self_play(20)
-    torch.save(trained_hnet, "./model.bin")
+    # torch.save(trained_hnet, "./model.bin")
     hnet = HexapawnNet()
     print("--------------------------\n""Final Score with random:", pit_nns(hnet, trained_hnet, 50))

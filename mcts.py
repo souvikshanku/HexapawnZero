@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from game import is_game_over, get_valid_moves, make_move
+from game import is_game_over, get_valid_moves, make_move  # , draw_board
 from utils import MOVE_INDEX, get_input_from_state, get_move_index
 from model import HexapawnNet
 
@@ -27,6 +27,7 @@ class MCTS:
 
     def search(self, state, player):
         s = str(get_input_from_state(state, player))
+        # s = str(state) + " " + str(player)
         # s = draw_board(state) + str(player)
 
         if is_game_over(state, player)[0]:
@@ -47,8 +48,8 @@ class MCTS:
 
             if s_a in self.Qsa:
                 u = (
-                    self.Qsa[(s, a)] 
-                    + 1 * self.Ps[s][a] * np.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+                    self.Qsa[s_a]
+                    + 1 * self.Ps[s][a] * np.sqrt(self.Ns[s]) / (1 + self.Nsa[s_a])
                 )
             else:
                 u = 1 * self.Ps[s][a] * np.sqrt(self.Ns[s] + 1e-8)  # Q = 0 ?
@@ -61,7 +62,7 @@ class MCTS:
 
         v = self.search(next_state, - player)
 
-        s_a = str((s, best_move[0], best_move[1]))
+        s_a = str((s, get_move_index(best_move)))
 
         if s_a in self.Qsa:
             self.Qsa[s_a] = (self.Nsa[s_a] * self.Qsa[s_a] + v) / (self.Nsa[s_a] + 1)
@@ -80,16 +81,17 @@ if __name__ == "__main__":
     hnet = HexapawnNet()
     s = np.array([
         [-1, -1, -1],
-        [0, 0, 0],
-        [1, 1, 1]
+        [0, 1, 0],
+        [1, 0, 1]
     ])
 
     mcts = MCTS(hnet)
 
     for _ in range(10):
-        mcts.search(s, 1)
+        mcts.search(s, -1)
 
-    print(mcts.Qsa)
-    print(mcts.Ps)
-    print(mcts.Nsa)
-    print(mcts.Ns)
+    for k in mcts.Qsa:
+        print(k, mcts.Qsa[k], "\n")
+
+    for k in mcts.Ns:
+        print(k, mcts.Ns[k], "\n")

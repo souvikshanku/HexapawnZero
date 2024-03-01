@@ -35,6 +35,12 @@ def get_input_from_state(state: np.ndarray, player: int):
     return np.append([white, black], player)
 
 
+def get_move_index(move):
+    for i in MOVE_INDEX:
+        if move == MOVE_INDEX[i]:
+            return i
+
+
 if __name__ == "__main__":
     state = np.array([
         [-1, -1, -1],
