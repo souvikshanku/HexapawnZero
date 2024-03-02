@@ -27,8 +27,6 @@ class MCTS:
 
     def search(self, state, player):
         s = str(get_input_from_state(state, player))
-        # s = str(state) + " " + str(player)
-        # s = draw_board(state) + str(player)
 
         if is_game_over(state, player)[0]:
             reward = is_game_over(state, player)[1]
@@ -36,7 +34,7 @@ class MCTS:
 
         if s not in self.Ps:
             policy, value = self.hnet.predict(get_input_from_state(state, player))
-            self.Ps[s] = mask_illegal_moves(state, policy, player)
+            self.Ps[s] = mask_illegal_moves(state, torch.exp(policy), player)
             self.Ns[s] = 0
             return - value
 

@@ -1,5 +1,7 @@
 import numpy as np
 
+from game import draw_board
+
 
 """
     +-----+-----+-----+
@@ -33,6 +35,17 @@ def get_input_from_state(state: np.ndarray, player: int):
     black = (state == - 1).flatten().astype(int)
     player = np.array([player == 1] * 3).astype(int)
     return np.append([white, black], player)
+
+
+def get_state_from_input(inp):
+    white = inp[:9].reshape(3, 3)
+
+    black = inp[9:18].reshape(3, 3)
+    black[np.where(black == 1)] = -1
+
+    print(draw_board(black + white))
+    player = "white" if inp[-1] == 1 else "black"
+    print("player:", player, "\n")
 
 
 def get_move_index(move):

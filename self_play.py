@@ -8,7 +8,7 @@ from model import HexapawnNet
 from utils import MOVE_INDEX, get_input_from_state
 
 
-def generate_examples(hnet: HexapawnNet, num_episodes=1):
+def generate_examples(hnet: HexapawnNet, num_episodes=10):
     training_examples = []
     num_sims = 10
 
@@ -32,12 +32,12 @@ def generate_examples(hnet: HexapawnNet, num_episodes=1):
                 None,
             ])
 
-            if not is_game_over(state, player * -1)[0]:
+            if not is_game_over(state, player)[0]:
                 action = _get_action_from_policy(improved_policy)
                 state = make_move(state, _from=action[0], _to=action[1], player=player)
 
             else:
-                examples = _assign_rewards(examples[:-1], winner=player)
+                examples = _assign_rewards(examples[:-1], winner=player * -1)
                 training_examples += examples
                 break
 
@@ -129,7 +129,7 @@ def self_play(num_iters: int):
     examples = []
 
     for _ in range(num_iters):
-        examples += generate_examples(hnet, 10)
+        examples += generate_examples(hnet, 20)
 
         new_hnet = copy.deepcopy(hnet)
         new_hnet.train(examples)
@@ -137,7 +137,7 @@ def self_play(num_iters: int):
         frac_win = pit_nns(hnet, new_hnet)
         print("frac_win: ", frac_win,)
 
-        if frac_win >= 0.5:
+        if frac_win > 0.5:
             hnet = new_hnet
             examples = []
 
@@ -145,9 +145,9 @@ def self_play(num_iters: int):
 
 
 if __name__ == "__main__":
-    # import torch
+    import torch
 
-    trained_hnet = self_play(20)
-    # torch.save(trained_hnet, "./model.bin")
+    trained_hnet = self_play(7)
+    torch.save(trained_hnet, "./model.bin")
     hnet = HexapawnNet()
     print("--------------------------\n""Final Score with random:", pit_nns(hnet, trained_hnet, 50))
