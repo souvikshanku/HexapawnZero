@@ -15,7 +15,7 @@ BOARD = list("""
 """)
 
 
-def draw_board(state: np.ndarray) -> None:
+def draw_board(state: np.ndarray) -> str:
     board = BOARD.copy()
 
     pos = [32, 38, 44, 80, 86, 92, 128, 134, 140]
@@ -98,9 +98,7 @@ def is_game_over(state: np.ndarray, player: int) -> tuple[bool, int]:
     return False, None
 
 
-def make_move(
-    state: np.ndarray, _from: list, _to: list, player: int
-) -> np.ndarray:
+def make_move(state: np.ndarray, _from: list, _to: list, player: int) -> np.ndarray:
     state_copy = state.copy()
     state_copy[_from[0], _from[1]] = 0
     state_copy[_to[0], _to[1]] = player

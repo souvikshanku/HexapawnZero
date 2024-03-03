@@ -52,14 +52,9 @@ class HexapawnNet(nn.Module):
             l_v = self.loss_v(target_vs, v)
             total_loss = l_pi + l_v
 
-            if _ == 0:
-                print("total_loss:", total_loss)
-
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
-
-        print("total_loss:", total_loss)
 
     def predict(self, state):
         state = torch.FloatTensor(np.array(state))

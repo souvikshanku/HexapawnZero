@@ -23,4 +23,4 @@
   * Understand example gen by mcts  ✅
   * Implement episodes  ✅
   * Pit nns  ✅
-  * policy iteration  ☑️ (not sure if it's bug free :( )
+  * policy iteration  ✅

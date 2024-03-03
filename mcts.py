@@ -1,7 +1,9 @@
+# adapted from https://github.com/suragnair/alpha-zero-general/blob/master/MCTS.py
+
 import numpy as np
 import torch
 
-from game import is_game_over, get_valid_moves, make_move  # , draw_board
+from game import is_game_over, get_valid_moves, make_move
 from utils import MOVE_INDEX, get_input_from_state, get_move_index
 from model import HexapawnNet
 
@@ -25,7 +27,7 @@ class MCTS:
         self.Ns = {}  # stores #times board s was visited
         self.Ps = {}  # stores initial policy (returned by neural net)
 
-    def search(self, state, player):
+    def search(self, state: np.ndarray, player: int) -> torch.Tensor:
         s = str(get_input_from_state(state, player))
 
         if is_game_over(state, player)[0]:
@@ -50,7 +52,7 @@ class MCTS:
                     + 1 * self.Ps[s][a] * np.sqrt(self.Ns[s]) / (1 + self.Nsa[s_a])
                 )
             else:
-                u = 1 * self.Ps[s][a] * np.sqrt(self.Ns[s] + 1e-8)  # Q = 0 ?
+                u = 1 * self.Ps[s][a] * np.sqrt(self.Ns[s] + 1e-8)
 
             if u > max_u:
                 max_u = u

@@ -30,14 +30,14 @@ MOVE_INDEX = {
 }
 
 
-def get_input_from_state(state: np.ndarray, player: int):
+def get_input_from_state(state: np.ndarray, player: int) -> np.ndarray:
     white = (state == 1).flatten().astype(int)
     black = (state == - 1).flatten().astype(int)
     player = np.array([player == 1] * 3).astype(int)
     return np.append([white, black], player)
 
 
-def get_state_from_input(inp):
+def _get_state_from_input(inp: np.ndarray) -> None:
     white = inp[:9].reshape(3, 3)
 
     black = inp[9:18].reshape(3, 3)
@@ -48,7 +48,7 @@ def get_state_from_input(inp):
     print("player:", player, "\n")
 
 
-def get_move_index(move):
+def get_move_index(move: list) -> int:
     for i in MOVE_INDEX:
         if move == MOVE_INDEX[i]:
             return i
