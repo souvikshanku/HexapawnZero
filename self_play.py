@@ -8,6 +8,30 @@ from model import HexapawnNet
 from utils import MOVE_INDEX, get_input_from_state
 
 
+def _get_mcts_policy(state, Nsa) -> np.ndarray:
+    policy = np.zeros(28)
+    for a in Nsa:
+        s = eval(eval(a)[0].replace(" ", ","))
+
+        if (state == s).all():
+            policy[eval(a)[1]] = Nsa[a]
+
+    if sum(policy) != 0:
+        return policy / sum(policy)
+
+
+def _assign_rewards(examples: list, winner: int) -> list:
+    indc = 0 if winner == -1 else 1
+
+    for ex in examples:
+        if ex[0][-1] == indc:
+            ex[2] = 1
+        else:
+            ex[2] = - 1
+
+    return examples
+
+
 def _generate_examples(hnet: HexapawnNet, num_episodes: int = 10) -> list:
     training_examples = []
     num_sims = 10
@@ -33,7 +57,9 @@ def _generate_examples(hnet: HexapawnNet, num_episodes: int = 10) -> list:
             ])
 
             if not is_game_over(state, player)[0]:
-                action = _get_action_from_policy(improved_policy)
+                action = MOVE_INDEX[
+                    np.random.choice(range(len(improved_policy)), p=improved_policy)
+                ]
                 state = make_move(state, _from=action[0], _to=action[1], player=player)
 
             else:
@@ -44,33 +70,11 @@ def _generate_examples(hnet: HexapawnNet, num_episodes: int = 10) -> list:
     return training_examples
 
 
-def _get_mcts_policy(state, Nsa) -> np.ndarray:
-    policy = np.zeros(28)
-    for a in Nsa:
-        s = eval(eval(a)[0].replace(" ", ","))
-
-        if (state == s).all():
-            policy[eval(a)[1]] = Nsa[a]
-
-    if sum(policy) != 0:
-        return policy / sum(policy)
-
-
-def _get_action_from_policy(policy) -> list:
+def get_action_from_policy(state, player, Nsa) -> list:
+    s = get_input_from_state(state, player)
+    policy = _get_mcts_policy(s, Nsa)
     action_idx = np.random.choice(range(len(policy)), p=policy)
     return MOVE_INDEX[action_idx]
-
-
-def _assign_rewards(examples: list, winner: int) -> list:
-    indc = 0 if winner == -1 else 1
-
-    for ex in examples:
-        if ex[0][-1] == indc:
-            ex[2] = 1
-        else:
-            ex[2] = - 1
-
-    return examples
 
 
 def _pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet, num_episodes: int = 20) -> float:
@@ -103,8 +107,7 @@ def _pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet, num_episodes: int = 20) -> 
             for _ in range(num_sims):
                 mcts.search(state, player=player)
 
-            s = str(get_input_from_state(state, player))
-            action = _get_action_from_policy(mcts.Ps[s])
+            action = get_action_from_policy(state, player, mcts.Nsa)
             state = make_move(state, _from=action[0], _to=action[1], player=player)
 
             if is_game_over(state, player * -1)[0]:
@@ -124,7 +127,7 @@ def _pit_nns(hnet1: HexapawnNet, hnet2: HexapawnNet, num_episodes: int = 20) -> 
     return hnet2_wins / num_episodes
 
 
-def self_play(num_iters: int) -> HexapawnNet:
+def learn_by_self_play(num_iters: int) -> HexapawnNet:
     hnet = HexapawnNet()
     examples = []
 
@@ -148,9 +151,9 @@ def self_play(num_iters: int) -> HexapawnNet:
 
 
 if __name__ == "__main__":
-    # import torch
+    import torch
 
-    trained_hnet = self_play(10)
-    # torch.save(trained_hnet, "./model.bin")
+    trained_hnet = learn_by_self_play(10)
+    torch.save(trained_hnet, "./model.bin")
     hnet = HexapawnNet()
     print("--------------------------\nFinal Score with random:", _pit_nns(hnet, trained_hnet, 50))
