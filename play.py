@@ -11,13 +11,13 @@ from self_play import get_action_from_policy, learn_by_self_play
 
 
 def ask_for_valid_move(state: np.ndarray, player: int) -> list:
-    while True:
-        moves = get_valid_moves(state, player)
-        move_d = {i: move for i, move in enumerate(moves)}
-        print("Valid moves:")
-        for k in move_d:
-            print(f"{move_d[k][0]} --> {move_d[k][1]}    {k}")
+    moves = get_valid_moves(state, player)
+    move_d = {i: move for i, move in enumerate(moves)}
+    print("Valid moves:")
+    for k in move_d:
+        print(f"{move_d[k][0]} --> {move_d[k][1]}    {k}")
 
+    while True:
         idx = int(input("Your move? "))
 
         if idx in move_d.keys():
@@ -41,7 +41,7 @@ def choose_move(state: np.ndarray, player: int, hnet: HexapawnNet) -> np.ndarray
 
 def render(state: np.ndarray) -> None:
     os.system("clear")
-    print(draw_board(state))
+    draw_board(state)
 
 
 if __name__ == "__main__":
@@ -74,15 +74,15 @@ if __name__ == "__main__":
             state = make_move(state, move[0], move[1], player)
             render(state)
         else:
+            reward = - 1
             break
         if not is_game_over(state, player)[0]:
             time.sleep(3)
             state = choose_move(state, player * -1, hnet)
             render(state)
         else:
+            reward = 1
             break
-
-    reward = is_game_over(state, player)[1]
 
     if reward == 1:
         print("You win!")

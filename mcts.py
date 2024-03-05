@@ -8,7 +8,7 @@ from utils import MOVE_INDEX, get_input_from_state, get_move_index
 from model import HexapawnNet
 
 
-def mask_illegal_moves(state: np.ndarray, policy: torch.Tensor, player: int):
+def mask_illegal_moves(state: np.ndarray, policy: torch.Tensor, player: int) -> np.ndarray:
     policy = policy.detach().numpy().copy()
     valid_moves = get_valid_moves(state, player)
     # Mask illegal move

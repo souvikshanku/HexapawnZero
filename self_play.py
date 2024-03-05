@@ -155,5 +155,6 @@ if __name__ == "__main__":
 
     trained_hnet = learn_by_self_play(10)
     torch.save(trained_hnet, "./model.bin")
+
     hnet = HexapawnNet()
-    print("--------------------------\nFinal Score with random:", _pit_nns(hnet, trained_hnet, 50))
+    print("Final Score with untrained NN:", _pit_nns(hnet, trained_hnet, 50))

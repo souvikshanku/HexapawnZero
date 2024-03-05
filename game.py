@@ -26,6 +26,8 @@ def draw_board(state: np.ndarray) -> str:
         elif move == -1:
             board[pos[i]] = "B"
 
+    print("".join(board))
+
     return "".join(board)
 
 

@@ -62,3 +62,4 @@ if __name__ == "__main__":
     ])
     inp = get_input_from_state(state, 1)
     print(inp)
+    _get_state_from_input(inp)
