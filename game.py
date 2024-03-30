@@ -15,7 +15,7 @@ BOARD = list("""
 """)
 
 
-def draw_board(state: np.ndarray) -> str:
+def draw_board(state: np.ndarray) -> None:
     board = BOARD.copy()
 
     pos = [32, 38, 44, 80, 86, 92, 128, 134, 140]
@@ -27,8 +27,6 @@ def draw_board(state: np.ndarray) -> str:
             board[pos[i]] = "B"
 
     print("".join(board))
-
-    return "".join(board)
 
 
 def get_valid_moves(state: np.ndarray, player: int) -> list:

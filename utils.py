@@ -43,7 +43,7 @@ def _get_state_from_input(inp: np.ndarray) -> None:
     black = inp[9:18].reshape(3, 3)
     black[np.where(black == 1)] = -1
 
-    print(draw_board(black + white))
+    draw_board(black + white)
     player = "white" if inp[-1] == 1 else "black"
     print("player:", player, "\n")
 
