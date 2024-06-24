@@ -1,6 +1,6 @@
 # HexapawnZero
 
-Implementation of AlphaZero for the game of [Hexapawn](https://en.wikipedia.org/wiki/Hexapawn).
+Implementation of AlphaZero for the game of [Hexapawn](https://en.wikipedia.org/wiki/Hexapawn). I also wrote a [blog post](https://souvikshanku.github.io/blog/hexapawn/) on this!
 
 ## Example Usage
 
